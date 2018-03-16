@@ -34,49 +34,39 @@ extern "C" {
 #include "config.h"
 #include "min_heap.h"
 #include "evsignal.h"
-//比如对于epoll，libevent实现了5个对应的接口函数，并在初始化时并将eventop的5个函数指针指向这5个函数，
-//那么程序就可以使用epoll作为I/O demultiplex机制了
+
 struct eventop {
 	const char *name;
-	void *(*init)(struct event_base *);//初始化
-	int (*add)(void *, struct event *);//注册事件
-	int (*del)(void *, struct event *);//删除事件
-	int (*dispatch)(struct event_base *, void *, struct timeval *);//事件分发
-	void (*dealloc)(struct event_base *, void *);//注销，释放资源
+	void *(*init)(struct event_base *);
+	int (*add)(void *, struct event *);
+	int (*del)(void *, struct event *);
+	int (*dispatch)(struct event_base *, void *, struct timeval *);
+	void (*dealloc)(struct event_base *, void *);
 	/* set if we need to reinitialize the event base */
 	int need_reinit;
 };
 
 struct event_base {
-	///指定某个eventop结构体，它决定了该event_base使用哪一种I/O复用技术
-	//指向了全局变量static const struct eventop* eventops[]中的一个，里面包含了select\poll\epoll\kequeue等等若干全局实例对象
 	const struct eventop *evsel;
-	//实际上是eventop实例对象
 	void *evbase;
-	//总事件个数
 	int event_count;		/* counts number of total events */
-	//活跃事件个数
 	int event_count_active;	/* counts number of active events */
 
-	//处理完所有的事件之后退出
 	int event_gotterm;		/* Set to terminate loop */
-	//立刻退出
 	int event_break;		/* Set to terminate loop immediately */
 
-	//activequeues[priority]是一个链表，链表的每一个结点指向一个优先级为priority的就绪事件event
 	/* active event management */
 	struct event_list **activequeues;
 	int nactivequeues;
 
 	/* signal handling info */
-	struct evsignal_info sig;//管理信号的结构体
-	//事件链表，保存了所有注册事件的event指针
+	struct evsignal_info sig;
+
 	struct event_list eventqueue;
-	//事件时间
 	struct timeval event_tv;
-	//管理定时事件的最小堆
+
 	struct min_heap timeheap;
-	//同时间管理变量
+
 	struct timeval tv_cache;
 };
 

@@ -209,45 +209,27 @@ struct {								\
 #endif /* !TAILQ_ENTRY */
 
 struct event_base;
-//事件类型
 struct event {
-	//以下三个都是双向链表结点指针
-	//它们是libevent对不同事件类型和在不同的时期，对事件的管理时使用到的字段。
-	//libevent使用双向链表保存所有注册的I/O和Signal事件，
-	//ev_next就是该I/O事件在链表中的位置；称此链表为“已注册事件链表”；
-	//ev_signal_next就是signal事件在signal事件链表中的位置；
-	//ev_active_next：libevent将所有的激活事件放入到链表active list中，然后遍历active list执行调度，ev_active_next就指明了event在active list中的位置；
 	TAILQ_ENTRY (event) ev_next;
 	TAILQ_ENTRY (event) ev_active_next;
 	TAILQ_ENTRY (event) ev_signal_next;
-	//使用小堆管理定时事件，是timeout事件，则是小堆中的索引
 	unsigned int min_heap_idx;	/* for managing timeouts */
 
-	//event_base结构，是反应堆实例
 	struct event_base *ev_base;
 
-	//对于I/O事件是绑定的文件描述符，对于signal事件，是绑定的信号
 	int ev_fd;
-	//event关注的事件类型，可以是I/O事件，定时事件，信号，辅助选项。
-	//信号和I/O事件不能同时设置，其他的事件可以‘|’组合
 	short ev_events;
-	//事件就绪时候调用ev_callback回调函数的次数，一般是1
 	short ev_ncalls;
-	//指针，通常指向ec_ncalls或者为NULL
 	short *ev_pncalls;	/* Allows deletes in callback */
 
-	//如果是超时事件，则是超时值
 	struct timeval ev_timeout;
 
 	int ev_pri;		/* smaller numbers are higher priority */
 
-	//回调函数，被ev_base调用
 	void (*ev_callback)(int, short, void *arg);
-	//任意类型数据
 	void *ev_arg;
 
 	int ev_res;		/* result passed to event callback */
-	//用于标记event信息的字段，表明当前的状态
 	int ev_flags;
 };
 
