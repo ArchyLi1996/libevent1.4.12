@@ -1,3 +1,4 @@
+# 目前注释了三个文件event.c和event.h，以及event-internal.h，方便于梳理整个事件的流程，后续慢慢添加
 To build libevent, type
 
 $ ./configure && make
