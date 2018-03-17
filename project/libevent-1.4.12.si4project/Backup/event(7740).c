@@ -138,7 +138,6 @@ detect_monotonic(void)
 #endif
 }
 
-//将timecache赋值为当前系统时间
 static int
 gettime(struct event_base *base, struct timeval *tp)
 {
@@ -495,20 +494,16 @@ event_base_loop(struct event_base *base, int flags)
 	/* clear time cache */
 	base->tv_cache.tv_sec = 0;
 
-	
-	// evsignal_base是全局变量，在处理signal时，用于指名signal所属的event_base实例
 	if (base->sig.ev_signal_added)
 		evsignal_base = base;
 	done = 0;
-	//事件主循环
 	while (!done) {
 		/* Terminate the loop if we have been asked to */
-		//检查是否是所有事件完成后退出
 		if (base->event_gotterm) {
 			base->event_gotterm = 0;
 			break;
 		}
-		//检查是否是立刻退出
+
 		if (base->event_break) {
 			base->event_break = 0;
 			break;
@@ -526,10 +521,8 @@ event_base_loop(struct event_base *base, int flags)
 			}
 		}
 
-		//校正系统时间
 		timeout_correct(base, &tv);
 
-		//根据timerheap中事件的最小超时事件，计算系统中I/O demultiplexer的最大等待时间
 		tv_p = &tv;
 		if (!base->event_count_active && !(flags & EVLOOP_NONBLOCK)) {
 			timeout_next(base, &tv_p);
@@ -538,12 +531,10 @@ event_base_loop(struct event_base *base, int flags)
 			 * if we have active events, we just poll new events
 			 * without waiting.
 			 */
-			 //依然有未处理的就绪事件，就让I/O demultiplexer立即返回不必等待。
 			evutil_timerclear(&tv);
 		}
 		
 		/* If we have no events, we just exit */
-		//如果当前没有注册事件，就退出
 		if (!event_haveevents(base)) {
 			event_debug(("%s: no events registered.", __func__));
 			return (1);
@@ -555,22 +546,15 @@ event_base_loop(struct event_base *base, int flags)
 		/* clear time cache */
 		base->tv_cache.tv_sec = 0;
 
-		
-		// 调用系统I/O demultiplexer等待就绪I/O events，可能是epoll_wait，或者select等；
-		// 在evsel->dispatch()中，会把就绪signal event、I/O event插入到激活链表中
 		res = evsel->dispatch(base, evbase, tv_p);
 
 		if (res == -1)
 			return (-1);
-		
-		//将timecache赋值为当前系统时间
 		gettime(base, &base->tv_cache);
 
-		//检查heap中timerevents 将就绪的timerevent从heap上删除，并且插入到激活链表中
 		timeout_process(base);
 
 		if (base->event_count_active) {
-			//处理激活链表中就绪event,调用其回调函数执行事件处理
 			event_process_active(base);
 			if (!base->event_count_active && (flags & EVLOOP_ONCE))
 				done = 1;
@@ -969,7 +953,6 @@ timeout_correct(struct event_base *base, struct timeval *tv)
 	base->event_tv = *tv;
 }
 
-//检查heap中timerevents 将就绪的timerevent从heap上删除，并且插入到激活链表中
 void
 timeout_process(struct event_base *base)
 {

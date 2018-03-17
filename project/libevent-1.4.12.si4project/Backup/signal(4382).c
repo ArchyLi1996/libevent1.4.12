@@ -92,8 +92,6 @@ evsignal_cb(int fd, short what, void *arg)
 #define FD_CLOSEONEXEC(x)
 #endif
 
-//包含创建socketpair，并且设置ev_signal事件
-//但并没有注册，而是等到有信号注册时才检查并注册），并将所有标记置零，初始化信号的注册事件链表指针等
 int
 evsignal_init(struct event_base *base)
 {
@@ -290,24 +288,21 @@ evsignal_handler(int sig)
 {
 	int save_errno = errno;
 
-	if (evsignal_base == NULL) {//不覆盖原来的错误代码
+	if (evsignal_base == NULL) {
 		event_warn(
 			"%s: received signal %d, but have no base configured",
 			__func__, sig);
 		return;
 	}
 
-	//记录信号sig的触发册数，并且设置event触发标记
 	evsignal_base->sig.evsigcaught[sig]++;
 	evsignal_base->sig.evsignal_caught = 1;
 
 #ifndef HAVE_SIGACTION
-	signal(sig, evsignal_handler);//重新注册信号
+	signal(sig, evsignal_handler);
 #endif
 
 	/* Wake up our notification mechanism */
-	// 向写socket写一个字节数据，触发event_base的I/O事件，从而通知其有信号触发，需要处理
-
 	send(evsignal_base->sig.ev_signal_pair[0], "a", 1, 0);
 	errno = save_errno;
 }

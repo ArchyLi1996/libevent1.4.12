@@ -29,22 +29,21 @@
 
 typedef void (*ev_sighandler_t)(int);
 
-//通过这个结构体对signal事件进行管理
 struct evsignal_info {
-	struct event ev_signal;//为socketpair的读socket向event_base注册读事件使用的event结构体
-	int ev_signal_pair[2];//socketpair对
-	int ev_signal_added;//记录ev_signal事件是否已经被注册了
-	volatile sig_atomic_t evsignal_caught;//是否有信号发生的标记，因为可能被其他线程进行更改，所以是volatile关键字进行修饰
-	struct event_list evsigevents[NSIG];//表示注册到信号signo的事件链表
-	sig_atomic_t evsigcaught[NSIG];//记录每个信号触发的次数
+	struct event ev_signal;
+	int ev_signal_pair[2];
+	int ev_signal_added;
+	volatile sig_atomic_t evsignal_caught;
+	struct event_list evsigevents[NSIG];
+	sig_atomic_t evsigcaught[NSIG];
 #ifdef HAVE_SIGACTION
-	struct sigaction **sh_old;//记录了原来的signal处理函数指针，当信号signo注册的event被清空时，需要重新设置其处理函数
+	struct sigaction **sh_old;
 #else
 	ev_sighandler_t **sh_old;
 #endif
 	int sh_old_max;
 };
-int evsignal_init(struct event_base *);//初始化
+int evsignal_init(struct event_base *);
 void evsignal_process(struct event_base *);
 int evsignal_add(struct event *);
 int evsignal_del(struct event *);
