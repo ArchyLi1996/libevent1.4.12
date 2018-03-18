@@ -75,8 +75,6 @@ static int epoll_del	(void *, struct event *);
 static int epoll_dispatch	(struct event_base *, void *, struct timeval *);
 static void epoll_dealloc	(struct event_base *, void *);
 
-//eventops对象epollops，都是函数指针
-//调用结构体eventop的init和dispatch函数指针实际上调用的就是epoll的初始化函数epoll_init和事件分发函数epoll_dispatch了
 const struct eventop epollops = {
 	"epoll",
 	epoll_init,

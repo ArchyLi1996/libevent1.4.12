@@ -121,7 +121,7 @@ int evutil_make_socket_nonblocking(int sock);
  */
 #ifdef _EVENT_HAVE_TIMERADD
 #define evutil_timeradd(tvp, uvp, vvp) timeradd((tvp), (uvp), (vvp))
-#define evutil_timersub(tvp, uvp, vvp) timersub((tvp), (uvp), (vvp))//计算时间差值
+#define evutil_timersub(tvp, uvp, vvp) timersub((tvp), (uvp), (vvp))
 #else
 #define evutil_timeradd(tvp, uvp, vvp)							\
 	do {														\
